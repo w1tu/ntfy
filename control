@@ -1,6 +1,6 @@
 Package: com.witu.ntfy
 Name: ntfy
-Version: 1.3.0
+Version: 1.0
 Architecture: iphoneos-arm
 Description: Minimal, customisable notification dots for Home Screen icons and folders.
 Maintainer: witu
