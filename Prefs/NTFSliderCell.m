@@ -82,13 +82,27 @@
 	return round(value / [self step]) * [self step];
 }
 
-- (void)updateValueLabel:(double)value {
+- (NSString *)formattedValue:(double)value {
 	NSString *format = [self.specifier propertyForKey:@"ntfFormat"] ?: @"%.0f";
 	if (fabs(value) < 0.001) {
 		value = 0;
 		format = [format stringByReplacingOccurrencesOfString:@"%+" withString:@"%"];
 	}
-	NSString *text = [NSString stringWithFormat:format, value];
+	return [NSString stringWithFormat:format, value];
+}
+
+// fits the widest value so it doesn't jump around
+- (CGFloat)valueLabelWidth {
+	NSDictionary *attributes = @{NSFontAttributeName: _valueLabel.font};
+	CGFloat width = 0;
+	for (NSNumber *value in @[@(_slider.minimumValue), @(_slider.maximumValue)]) {
+		width = MAX(width, [[self formattedValue:value.doubleValue] sizeWithAttributes:attributes].width);
+	}
+	return ceil(width) + 2;
+}
+
+- (void)updateValueLabel:(double)value {
+	NSString *text = [self formattedValue:value];
 	_valueLabel.text = text;
 	_slider.accessibilityValue = text;
 }
@@ -112,7 +126,7 @@
 	[super layoutSubviews];
 	CGRect area = UIEdgeInsetsInsetRect(self.contentView.bounds, self.contentView.layoutMargins);
 	CGFloat lineHeight = ceil(_titleLabel.font.lineHeight);
-	CGFloat valueWidth = ceil([_valueLabel sizeThatFits:CGSizeMake(CGFLOAT_MAX, lineHeight)].width) + 2;
+	CGFloat valueWidth = [self valueLabelWidth];
 	CGFloat sliderHeight = 31;
 	CGFloat contentHeight = lineHeight + sliderHeight;
 	CGFloat top = MAX(6, round((CGRectGetHeight(self.contentView.bounds) - contentHeight) / 2.0));

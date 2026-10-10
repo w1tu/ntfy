@@ -30,8 +30,8 @@ static inline NSDictionary<NSString *, id> *NTFDefaultPreferences(void) {
 		NTF_KEY_SIZE: @12,
 		NTF_KEY_BORDER: @2,
 		NTF_KEY_OPACITY: @100,
-		NTF_KEY_OFFSET_X: @0,
-		NTF_KEY_OFFSET_Y: @0,
+		NTF_KEY_OFFSET_X: @2,
+		NTF_KEY_OFFSET_Y: @2,
 	};
 }
 
