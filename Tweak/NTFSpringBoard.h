@@ -19,9 +19,13 @@
 - (SBFolder *)folder;
 @end
 
+@class SBIconView;
+
 @interface SBIconImageView : UIView
 - (UIImage *)displayedImage;
 - (UIImage *)contentsImage;
+- (SBIcon *)icon;
+- (SBIconView *)iconView;
 @end
 
 @interface SBIconView : UIView

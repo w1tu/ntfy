@@ -27,6 +27,7 @@ static void NTFLog(NSString *format, ...) {
 static const void *kNTFDotKey = &kNTFDotKey;
 static const void *kNTFHiddenViewsKey = &kNTFHiddenViewsKey;
 static const void *kNTFIconKey = &kNTFIconKey;
+static const void *kNTFProviderKey = &kNTFProviderKey;
 static const void *kNTFNeedsColorKey = &kNTFNeedsColorKey;
 
 static NSHashTable<UIView *> *ntfBadgeViews;
@@ -50,6 +51,27 @@ static void NTFSetIconForBadge(UIView *badge, id icon) {
 	objc_setAssociatedObject(badge, kNTFIconKey, icon, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+@interface NTFWeakViewBox : NSObject
+@property (nonatomic, weak) UIView *view;
+@end
+
+@implementation NTFWeakViewBox
+@end
+
+// infoProvider is the SBIconView, weak since it owns the badge
+static UIView *NTFProviderForBadge(UIView *badge) {
+	return [objc_getAssociatedObject(badge, kNTFProviderKey) view];
+}
+
+static void NTFSetProviderForBadge(UIView *badge, id provider) {
+	NTFWeakViewBox *box = nil;
+	if ([provider isKindOfClass:[UIView class]]) {
+		box = [NTFWeakViewBox new];
+		box.view = provider;
+	}
+	objc_setAssociatedObject(badge, kNTFProviderKey, box, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 static NSHashTable<UIView *> *NTFHiddenViews(UIView *badge, BOOL create) {
 	NSHashTable *table = objc_getAssociatedObject(badge, kNTFHiddenViewsKey);
 	if (!table && create) {
@@ -61,12 +83,29 @@ static NSHashTable<UIView *> *NTFHiddenViews(UIView *badge, BOOL create) {
 
 #pragma mark - SpringBoard helpers
 
+// ios 18+ puts the badge inside SBIconImageView
 static SBIconView *NTFIconViewForBadge(UIView *badge) {
+	UIView *provider = NTFProviderForBadge(badge);
+	if ([provider isKindOfClass:ntfIconViewClass]) return (SBIconView *)provider;
+
 	UIView *view = badge.superview;
-	for (NSUInteger depth = 0; view && depth < 4; depth++, view = view.superview) {
+	for (NSUInteger depth = 0; view && depth < 8; depth++, view = view.superview) {
 		if ([view isKindOfClass:ntfIconViewClass]) return (SBIconView *)view;
+		if ([view respondsToSelector:@selector(iconView)]) {
+			id iconView = [(SBIconImageView *)view iconView];
+			if ([iconView isKindOfClass:ntfIconViewClass]) return iconView;
+		}
 	}
 	return nil;
+}
+
+static SBIcon *NTFResolvedIconForBadge(UIView *badge, SBIconView *iconView) {
+	SBIcon *icon = [iconView respondsToSelector:@selector(icon)] ? [iconView icon] : nil;
+	if (!icon && [badge.superview respondsToSelector:@selector(icon)]) {
+		id candidate = [(SBIconImageView *)badge.superview icon];
+		if ([candidate respondsToSelector:@selector(badgeNumberOrString)]) icon = candidate;
+	}
+	return icon ?: NTFIconForBadge(badge);
 }
 
 static BOOL NTFIconIsFolder(SBIcon *icon) {
@@ -272,10 +311,13 @@ static void NTFApplyBadge(UIView *badge, BOOL refreshAppearance) {
 	SBIconView *iconView = NTFIconViewForBadge(badge);
 	BOOL needsColor = [objc_getAssociatedObject(badge, kNTFNeedsColorKey) boolValue];
 	if (refreshAppearance || (needsColor && iconView)) {
-		SBIcon *icon = [iconView respondsToSelector:@selector(icon)] ? [iconView icon] : nil;
-		if (!icon) icon = NTFIconForBadge(badge);
+		SBIcon *icon = NTFResolvedIconForBadge(badge, iconView);
 #if DEBUG
-		if (prefs.adaptive && !icon) NTFLog(@"no icon for badge (iconView=%d)", iconView != nil);
+		if (prefs.adaptive && !icon) {
+			NSMutableArray *chain = [NSMutableArray array];
+			for (UIView *view = badge.superview; view && chain.count < 8; view = view.superview) [chain addObject:NSStringFromClass([view class])];
+			NTFLog(@"no icon for badge: provider=%@ chain=%@", NSStringFromClass([NTFProviderForBadge(badge) class]), [chain componentsJoinedByString:@" > "]);
+		}
 #endif
 		[dot applyStyle:prefs.style color:NTFResolvedColor(icon, iconView) border:prefs.border opacity:prefs.opacity];
 		// no icon view yet, retry once the badge is on screen
@@ -286,9 +328,10 @@ static void NTFApplyBadge(UIView *badge, BOOL refreshAppearance) {
 	NTFPositionDot(badge, dot, iconView);
 }
 
-static void NTFConfigureBadge(UIView *badge, id icon) {
+static void NTFConfigureBadge(UIView *badge, id icon, id provider) {
 	[ntfBadgeViews addObject:badge];
 	NTFSetIconForBadge(badge, icon);
+	NTFSetProviderForBadge(badge, provider);
 	NTFApplyBadge(badge, YES);
 }
 
@@ -308,12 +351,12 @@ static void NTFPreferencesChanged(CFNotificationCenterRef center, void *observer
 
 - (void)configureForIcon:(id)icon infoProvider:(id)provider {
 	%orig;
-	NTFConfigureBadge(self, icon);
+	NTFConfigureBadge(self, icon, provider);
 }
 
 - (void)configureAnimatedForIcon:(id)icon infoProvider:(id)provider animator:(id)animator {
 	%orig;
-	NTFConfigureBadge(self, icon);
+	NTFConfigureBadge(self, icon, provider);
 }
 
 - (void)prepareForReuse {

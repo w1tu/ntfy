@@ -28,14 +28,13 @@ extern NSString *const NTFPreviewNeedsUpdateNotification;
 		CGFloat step = [[specifier propertyForKey:@"ntfStep"] doubleValue] ?: 1.0;
 		value = @(round([value doubleValue] / step) * step);
 	}
-	CFPreferencesSetAppValue((__bridge CFStringRef)key, (__bridge CFPropertyListRef)value, (__bridge CFStringRef)NTF_DOMAIN);
+	NTFSaveSetting(key, value);
 	[self preferencesDidChange];
 	if ([key isEqualToString:NTF_KEY_STYLE]) [self reloadSpecifierID:NTF_KEY_BORDER animated:NO];
 }
 
 - (void)preferencesDidChange {
-	CFPreferencesAppSynchronize((__bridge CFStringRef)NTF_DOMAIN);
-	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR(NTF_NOTIFICATION), NULL, NULL, YES);
+	NTFPostSettingsChanged();
 	[[NSNotificationCenter defaultCenter] postNotificationName:NTFPreviewNeedsUpdateNotification object:nil];
 }
 
@@ -45,9 +44,7 @@ extern NSString *const NTFPreviewNeedsUpdateNotification;
 	                                                        preferredStyle:UIAlertControllerStyleAlert];
 	[alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
 	[alert addAction:[UIAlertAction actionWithTitle:@"Restore" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-		for (NSString *key in NTFDefaultPreferences()) {
-			CFPreferencesSetAppValue((__bridge CFStringRef)key, NULL, (__bridge CFStringRef)NTF_DOMAIN);
-		}
+		NTFWriteSettings(@{});
 		[self preferencesDidChange];
 		[self reloadSpecifiers];
 	}]];

@@ -1,25 +1,4 @@
 #import "NTFPreferences.h"
-#import <rootless.h>
-
-// read the plist directly, springboard's cfprefsd lookups miss the jailbreak redirect
-static NSDictionary *NTFStoredPreferences(void) {
-	NSString *name = [NTF_DOMAIN stringByAppendingPathExtension:@"plist"];
-	NSArray<NSString *> *paths = @[
-		[ROOT_PATH_NS(@"/var/mobile/Library/Preferences") stringByAppendingPathComponent:name],
-		[@"/var/mobile/Library/Preferences" stringByAppendingPathComponent:name],
-	];
-	for (NSString *path in paths) {
-		NSDictionary *stored = [NSDictionary dictionaryWithContentsOfFile:path];
-		if (stored) return stored;
-	}
-
-	CFPreferencesAppSynchronize((__bridge CFStringRef)NTF_DOMAIN);
-	CFArrayRef keys = CFPreferencesCopyKeyList((__bridge CFStringRef)NTF_DOMAIN, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	if (!keys) return @{};
-	CFDictionaryRef values = CFPreferencesCopyMultiple(keys, (__bridge CFStringRef)NTF_DOMAIN, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	CFRelease(keys);
-	return values ? (__bridge_transfer NSDictionary *)values : @{};
-}
 
 @implementation NTFPreferences {
 	NSDictionary *_stored;
@@ -51,7 +30,7 @@ static NSDictionary *NTFStoredPreferences(void) {
 }
 
 - (void)reload {
-	_stored = NTFStoredPreferences();
+	_stored = NTFLoadSettings();
 
 	_enabled = [self boolForKey:NTF_KEY_ENABLED];
 	_style = [self floatForKey:NTF_KEY_STYLE min:0 max:1] >= 0.5 ? NTFDotStyleHollow : NTFDotStyleFilled;

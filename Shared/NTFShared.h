@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import <rootless.h>
 
 #define NTF_DOMAIN @"com.witu.ntfy"
 #define NTF_NOTIFICATION "com.witu.ntfy/prefs"
@@ -83,7 +84,44 @@ static inline CGRect NTFDotFrame(CGRect imageFrame, CGFloat size, CGFloat offset
 	                  diameter, diameter);
 }
 
+#pragma mark - Settings storage
+
+// own plist instead of cfprefsd, which lagged and got redirected by the jailbreak
+static inline NSString *NTFSettingsPath(void) {
+	return ROOT_PATH_NS(@"/var/mobile/Library/Preferences/com.witu.ntfy.settings.plist");
+}
+
+static inline NSDictionary<NSString *, id> *NTFLoadSettings(void) {
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:NTFSettingsPath()];
+	if (settings) return settings;
+
+	// old cfprefsd plist
+	for (NSString *path in @[ROOT_PATH_NS(@"/var/mobile/Library/Preferences/com.witu.ntfy.plist"),
+	                         @"/var/mobile/Library/Preferences/com.witu.ntfy.plist"]) {
+		NSDictionary *legacy = [NSDictionary dictionaryWithContentsOfFile:path];
+		if (legacy) return legacy;
+	}
+	return @{};
+}
+
+static inline BOOL NTFWriteSettings(NSDictionary<NSString *, id> *settings) {
+	NSString *path = NTFSettingsPath();
+	[[NSFileManager defaultManager] createDirectoryAtPath:[path stringByDeletingLastPathComponent]
+	                          withIntermediateDirectories:YES attributes:nil error:nil];
+	return [settings writeToURL:[NSURL fileURLWithPath:path] error:nil];
+}
+
+static inline BOOL NTFSaveSetting(NSString *key, id value) {
+	NSMutableDictionary *settings = [NTFLoadSettings() mutableCopy];
+	if (value) settings[key] = value;
+	else [settings removeObjectForKey:key];
+	return NTFWriteSettings(settings);
+}
+
+static inline void NTFPostSettingsChanged(void) {
+	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR(NTF_NOTIFICATION), NULL, NULL, YES);
+}
+
 static inline id NTFCopyPreference(NSString *key) {
-	CFPropertyListRef value = CFPreferencesCopyAppValue((__bridge CFStringRef)key, (__bridge CFStringRef)NTF_DOMAIN);
-	return value ? (__bridge_transfer id)value : NTFDefaultPreferences()[key];
+	return NTFLoadSettings()[key] ?: NTFDefaultPreferences()[key];
 }
