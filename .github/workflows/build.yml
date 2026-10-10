@@ -13,6 +13,9 @@ on:
 jobs:
   build:
     runs-on: macos-14
+    strategy:
+      matrix:
+        scheme: [rootless, rootful]
     env:
       THEOS: ${{ github.workspace }}/theos
     steps:
@@ -28,23 +31,27 @@ jobs:
           git -C sdks sparse-checkout set iPhoneOS16.5.sdk
           cp -R sdks/iPhoneOS16.5.sdk "$THEOS/sdks/"
 
-      - name: Build rootless package (arm64 + arm64e)
+      - name: Build ${{ matrix.scheme }} package (arm64 + arm64e)
         working-directory: ntfy
         run: |
           export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
+          scheme="${{ matrix.scheme }}"
+          [ "$scheme" = rootful ] && scheme=""
           if [ "${{ inputs.debug }}" = "true" ]; then
-            make package DEBUG=1 THEOS_PACKAGE_SCHEME=rootless
+            make package DEBUG=1 THEOS_PACKAGE_SCHEME="$scheme"
           else
-            make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+            make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$scheme"
           fi
 
-      - name: Verify architectures
+      - name: Verify package
         working-directory: ntfy
         run: |
-          lipo -info .theos/_/var/jb/Library/MobileSubstrate/DynamicLibraries/ntfy.dylib
-          lipo -info .theos/_/var/jb/Library/PreferenceBundles/ntfyPrefs.bundle/ntfyPrefs
+          for binary in $(find .theos/_ -name ntfy.dylib -o -path '*ntfyPrefs.bundle/ntfyPrefs'); do
+            lipo -info "$binary"
+          done
+          ls -l packages/
 
       - uses: actions/upload-artifact@v5
         with:
-          name: ntfy-rootless
+          name: ntfy-${{ matrix.scheme }}
           path: ntfy/packages/*.deb

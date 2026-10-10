@@ -29,3 +29,9 @@ internal-stage::
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/Library/Application Support/ntfy"$(ECHO_END)
 	$(ECHO_NOTHING)cp assets/ntfy-icon-256.png "$(THEOS_STAGING_DIR)/Library/Application Support/ntfy/icon.png"$(ECHO_END)
 	$(ECHO_NOTHING)cp assets/ntfy-sileo-header.png "$(THEOS_STAGING_DIR)/Library/Application Support/ntfy/banner.png"$(ECHO_END)
+
+# rootful: no /var/jb
+ifneq ($(THEOS_PACKAGE_SCHEME),rootless)
+before-package::
+	$(ECHO_NOTHING)perl -pi -e 's#file:///var/jb/#file:///#' "$(THEOS_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
+endif
