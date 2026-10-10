@@ -3,3 +3,4 @@ packages/
 *.deb
 .DS_Store
 .mcp.json
+.dev/

@@ -39,6 +39,8 @@
 - (void)configureForIcon:(id)icon infoProvider:(id)provider;
 - (void)configureAnimatedForIcon:(id)icon infoProvider:(id)provider animator:(id)animator;
 - (void)prepareForReuse;
+- (void)_configureBackgroundAfterIconImageAppearanceChange; // ios 18
+- (void)_configureAfterIconImageAppearanceChange;           // ios 26
 @end
 
 @interface UIImage (NTFPrivate)

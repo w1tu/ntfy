@@ -384,13 +384,37 @@ static void NTFPreferencesChanged(CFNotificationCenterRef center, void *observer
 - (void)layoutSubviews {
 	%orig;
 	if (![NTFPreferences shared].enabled) return;
-	for (UIView *subview in self.subviews) {
+	// badge is in the icon view on ios 15-17, in the image view on 18+
+	NSArray<UIView *> *candidates = self.subviews;
+	if ([self respondsToSelector:@selector(_iconImageView)]) {
+		candidates = [candidates arrayByAddingObjectsFromArray:[self _iconImageView].subviews];
+	}
+	for (UIView *subview in candidates) {
 		if ([subview isKindOfClass:ntfBadgeViewClass] && NTFDotForBadge(subview)) {
 			NTFApplyBadge(subview, NO);
 		}
 	}
 }
 
+%end
+
+// icon appearance changes (dark/tinted/clear) skip configureForIcon:
+%group NTFAppearanceIOS18
+%hook SBIconBadgeView
+- (void)_configureBackgroundAfterIconImageAppearanceChange {
+	%orig;
+	if ([NTFPreferences shared].enabled) NTFApplyBadge(self, YES);
+}
+%end
+%end
+
+%group NTFAppearanceIOS26
+%hook SBIconBadgeView
+- (void)_configureAfterIconImageAppearanceChange {
+	%orig;
+	if ([NTFPreferences shared].enabled) NTFApplyBadge(self, YES);
+}
+%end
 %end
 
 %ctor {
@@ -407,6 +431,11 @@ static void NTFPreferencesChanged(CFNotificationCenterRef center, void *observer
 		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, NTFPreferencesChanged,
 		                                CFSTR(NTF_NOTIFICATION), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 		%init;
+		if ([ntfBadgeViewClass instancesRespondToSelector:@selector(_configureAfterIconImageAppearanceChange)]) {
+			%init(NTFAppearanceIOS26);
+		} else if ([ntfBadgeViewClass instancesRespondToSelector:@selector(_configureBackgroundAfterIconImageAppearanceChange)]) {
+			%init(NTFAppearanceIOS18);
+		}
 
 #if DEBUG
 		NTFLog(@"loaded: configure=%d animated=%d reuse=%d iconImageFrame=%d iconImageView=%d displayedImage=%d leafIcons=%d bundleIcon=%d",
