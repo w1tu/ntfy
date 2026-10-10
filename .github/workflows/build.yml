@@ -1,0 +1,41 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    env:
+      THEOS: ${{ github.workspace }}/theos
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ntfy
+
+      - name: Install Theos
+        run: |
+          brew install ldid make xz
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git sdks
+          git -C sdks sparse-checkout set iPhoneOS16.5.sdk
+          cp -R sdks/iPhoneOS16.5.sdk "$THEOS/sdks/"
+
+      - name: Build rootless package (arm64 + arm64e)
+        working-directory: ntfy
+        run: |
+          export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+
+      - name: Verify architectures
+        working-directory: ntfy
+        run: |
+          lipo -info .theos/_/var/jb/Library/MobileSubstrate/DynamicLibraries/ntfy.dylib
+          lipo -info .theos/_/var/jb/Library/PreferenceBundles/ntfyPrefs.bundle/ntfyPrefs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ntfy-rootless
+          path: ntfy/packages/*.deb

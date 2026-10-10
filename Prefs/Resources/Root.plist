@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>ntfy</string>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Replaces notification badges on Home Screen icons with small dots.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Enabled</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Appearance</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>key</key>
+			<string>style</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>1</integer>
+			</array>
+			<key>validTitles</key>
+			<array>
+				<string>Filled</string>
+				<string>Hollow</string>
+			</array>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Colour</string>
+			<key>footerText</key>
+			<string>Adaptive colour picks an accent colour from each app's icon. Folders use the apps inside them that have notifications. The colour above is used when no suitable accent colour is found.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSDefaultCell</string>
+			<key>cellClass</key>
+			<string>NTFColorCell</string>
+			<key>key</key>
+			<string>color</string>
+			<key>default</key>
+			<string>#FF3B30</string>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+			<key>height</key>
+			<integer>104</integer>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Adaptive Colour</string>
+			<key>key</key>
+			<string>adaptive</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Pastel Colours</string>
+			<key>key</key>
+			<string>pastel</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Size</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>key</key>
+			<string>size</string>
+			<key>default</key>
+			<integer>12</integer>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+			<key>min</key>
+			<integer>6</integer>
+			<key>max</key>
+			<integer>24</integer>
+			<key>showValue</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Ring Thickness</string>
+			<key>footerText</key>
+			<string>Applies to hollow dots.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>key</key>
+			<string>border</string>
+			<key>default</key>
+			<integer>2</integer>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+			<key>min</key>
+			<integer>1</integer>
+			<key>max</key>
+			<integer>5</integer>
+			<key>ntfStep</key>
+			<real>0.5</real>
+			<key>showValue</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Opacity</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>key</key>
+			<string>opacity</string>
+			<key>default</key>
+			<integer>100</integer>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+			<key>min</key>
+			<integer>20</integer>
+			<key>max</key>
+			<integer>100</integer>
+			<key>ntfStep</key>
+			<integer>5</integer>
+			<key>showValue</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Horizontal Position</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>key</key>
+			<string>offsetX</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+			<key>min</key>
+			<integer>-12</integer>
+			<key>max</key>
+			<integer>12</integer>
+			<key>showValue</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Vertical Position</string>
+			<key>footerText</key>
+			<string>Positive values move the dot right and up. Sizes and offsets scale with the icon, so dots stay consistent in the dock, folders and App Library.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>key</key>
+			<string>offsetY</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>com.witu.ntfy</string>
+			<key>min</key>
+			<integer>-12</integer>
+			<key>max</key>
+			<integer>12</integer>
+			<key>showValue</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Restore Defaults</string>
+			<key>action</key>
+			<string>restoreDefaults:</string>
+		</dict>
+	</array>
+</dict>
+</plist>
