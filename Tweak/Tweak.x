@@ -24,13 +24,6 @@ static void NTFLog(NSString *format, ...) {
 }
 #endif
 
-@interface NTFWeakBox : NSObject
-@property (nonatomic, weak) id object;
-@end
-
-@implementation NTFWeakBox
-@end
-
 static const void *kNTFDotKey = &kNTFDotKey;
 static const void *kNTFHiddenViewsKey = &kNTFHiddenViewsKey;
 static const void *kNTFIconKey = &kNTFIconKey;
@@ -48,17 +41,13 @@ static NTFDotView *NTFDotForBadge(UIView *badge) {
 	return objc_getAssociatedObject(badge, kNTFDotKey);
 }
 
+// strong on purpose, weak refs to SBIcon come back nil
 static SBIcon *NTFIconForBadge(UIView *badge) {
-	return [objc_getAssociatedObject(badge, kNTFIconKey) object];
+	return objc_getAssociatedObject(badge, kNTFIconKey);
 }
 
 static void NTFSetIconForBadge(UIView *badge, id icon) {
-	NTFWeakBox *box = nil;
-	if (icon) {
-		box = [NTFWeakBox new];
-		box.object = icon;
-	}
-	objc_setAssociatedObject(badge, kNTFIconKey, box, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	objc_setAssociatedObject(badge, kNTFIconKey, icon, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 static NSHashTable<UIView *> *NTFHiddenViews(UIView *badge, BOOL create) {
@@ -283,7 +272,11 @@ static void NTFApplyBadge(UIView *badge, BOOL refreshAppearance) {
 	SBIconView *iconView = NTFIconViewForBadge(badge);
 	BOOL needsColor = [objc_getAssociatedObject(badge, kNTFNeedsColorKey) boolValue];
 	if (refreshAppearance || (needsColor && iconView)) {
-		SBIcon *icon = NTFIconForBadge(badge);
+		SBIcon *icon = [iconView respondsToSelector:@selector(icon)] ? [iconView icon] : nil;
+		if (!icon) icon = NTFIconForBadge(badge);
+#if DEBUG
+		if (prefs.adaptive && !icon) NTFLog(@"no icon for badge (iconView=%d)", iconView != nil);
+#endif
 		[dot applyStyle:prefs.style color:NTFResolvedColor(icon, iconView) border:prefs.border opacity:prefs.opacity];
 		// no icon view yet, retry once the badge is on screen
 		BOOL pending = prefs.adaptive && !iconView && icon && !NTFIconIsFolder(icon);
