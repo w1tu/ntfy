@@ -302,6 +302,9 @@ static void NTFConfigureBadge(UIView *badge, id icon) {
 static void NTFPreferencesChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		[[NTFPreferences shared] reload];
+#if DEBUG
+		NTFLog(@"preferences changed: %@", [[NTFPreferences shared] storedValues]);
+#endif
 		for (UIView *badge in ntfBadgeViews.allObjects) NTFApplyBadge(badge, YES);
 	});
 }
@@ -376,6 +379,7 @@ static void NTFPreferencesChanged(CFNotificationCenterRef center, void *observer
 		      [objc_getClass("SBIconImageView") instancesRespondToSelector:@selector(displayedImage)],
 		      [objc_getClass("SBFolder") instancesRespondToSelector:@selector(leafIcons)],
 		      [UIImage respondsToSelector:@selector(_applicationIconImageForBundleIdentifier:format:scale:)]);
+		NTFLog(@"preferences at launch: %@", [[NTFPreferences shared] storedValues]);
 #endif
 	}
 }

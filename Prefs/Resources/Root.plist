@@ -9,19 +9,6 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSDefaultCell</string>
-			<key>cellClass</key>
-			<string>NTFPreviewCell</string>
-			<key>height</key>
-			<integer>128</integer>
-		</dict>
-
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
 			<key>footerText</key>
 			<string>Replaces notification badges on Home Screen icons and folders with small dots.</string>
 		</dict>
@@ -41,8 +28,14 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
-			<key>label</key>
-			<string>Style</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSDefaultCell</string>
+			<key>cellClass</key>
+			<string>NTFPreviewCell</string>
+			<key>height</key>
+			<integer>120</integer>
 		</dict>
 		<dict>
 			<key>cell</key>

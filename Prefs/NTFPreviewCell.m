@@ -96,6 +96,8 @@ NSString *const NTFPreviewNeedsUpdateNotification = @"NTFPreviewNeedsUpdateNotif
 
 - (void)layoutSubviews {
 	[super layoutSubviews];
+	// no separator above the style control
+	self.separatorInset = UIEdgeInsetsMake(0, CGRectGetWidth(self.bounds), 0, 0);
 	CGFloat size = [NTFCopyPreference(NTF_KEY_SIZE) doubleValue];
 	CGFloat offsetX = [NTFCopyPreference(NTF_KEY_OFFSET_X) doubleValue];
 	CGFloat offsetY = [NTFCopyPreference(NTF_KEY_OFFSET_Y) doubleValue];

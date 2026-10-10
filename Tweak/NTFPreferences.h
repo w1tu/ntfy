@@ -14,4 +14,5 @@
 
 + (instancetype)shared;
 - (void)reload;
+- (NSDictionary *)storedValues;
 @end
