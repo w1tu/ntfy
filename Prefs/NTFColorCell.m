@@ -58,6 +58,11 @@
 	[self setNeedsLayout];
 }
 
+- (void)tintColorDidChange {
+	[super tintColorDidChange];
+	[self setNeedsLayout];
+}
+
 - (void)setHighlighted:(BOOL)highlighted {
 	[super setHighlighted:highlighted];
 	self.alpha = highlighted ? 0.6 : 1.0;
@@ -71,7 +76,7 @@
 
 	_ringLayer.frame = square;
 	_ringLayer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectInset(CGRectMake(0, 0, side, side), 1, 1)].CGPath;
-	_ringLayer.strokeColor = [UIColor.labelColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
+	_ringLayer.strokeColor = [self.tintColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;
 
 	CGRect inner = CGRectInset(square, 5, 5);
 	_fillLayer.borderColor = [UIColor.separatorColor resolvedColorWithTraitCollection:self.traitCollection].CGColor;

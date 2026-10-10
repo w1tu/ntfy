@@ -23,3 +23,9 @@ include $(THEOS_MAKE_PATH)/tweak.mk
 
 SUBPROJECTS += Prefs
 include $(THEOS_MAKE_PATH)/aggregate.mk
+
+# sileo icon + header
+internal-stage::
+	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/Library/Application Support/ntfy"$(ECHO_END)
+	$(ECHO_NOTHING)cp assets/ntfy-icon-256.png "$(THEOS_STAGING_DIR)/Library/Application Support/ntfy/icon.png"$(ECHO_END)
+	$(ECHO_NOTHING)cp assets/ntfy-sileo-header.png "$(THEOS_STAGING_DIR)/Library/Application Support/ntfy/banner.png"$(ECHO_END)

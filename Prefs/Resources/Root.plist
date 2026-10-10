@@ -9,8 +9,6 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
-			<key>footerText</key>
-			<string>Replaces notification badges on Home Screen icons and folders with small dots.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -63,8 +61,6 @@
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>Colour</string>
-			<key>footerText</key>
-			<string>Adaptive Colour picks an accent colour from each app's icon, and folders use the apps inside them that have notifications. The colour above is used when an icon has no clear accent colour.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -110,8 +106,6 @@
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>Size &amp; Position</string>
-			<key>footerText</key>
-			<string>Positive offsets move the dot right and up. Sizes and offsets scale with each icon, so dots look the same in the dock, folders and App Library.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -133,7 +127,7 @@
 			<key>ntfFormat</key>
 			<string>%.0f pt</string>
 			<key>height</key>
-			<integer>84</integer>
+			<integer>70</integer>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -161,7 +155,7 @@
 			<key>ntfHollowOnly</key>
 			<true/>
 			<key>height</key>
-			<integer>84</integer>
+			<integer>70</integer>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -185,7 +179,7 @@
 			<key>ntfFormat</key>
 			<string>%.0f%%</string>
 			<key>height</key>
-			<integer>84</integer>
+			<integer>70</integer>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -207,7 +201,7 @@
 			<key>ntfFormat</key>
 			<string>%+.0f pt</string>
 			<key>height</key>
-			<integer>84</integer>
+			<integer>70</integer>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -229,7 +223,7 @@
 			<key>ntfFormat</key>
 			<string>%+.0f pt</string>
 			<key>height</key>
-			<integer>84</integer>
+			<integer>70</integer>
 		</dict>
 
 		<dict>

@@ -113,14 +113,13 @@
 	CGRect area = UIEdgeInsetsInsetRect(self.contentView.bounds, self.contentView.layoutMargins);
 	CGFloat lineHeight = ceil(_titleLabel.font.lineHeight);
 	CGFloat valueWidth = ceil([_valueLabel sizeThatFits:CGSizeMake(CGFLOAT_MAX, lineHeight)].width) + 2;
-	CGFloat top = 12;
+	CGFloat sliderHeight = 31;
+	CGFloat contentHeight = lineHeight + sliderHeight;
+	CGFloat top = MAX(6, round((CGRectGetHeight(self.contentView.bounds) - contentHeight) / 2.0));
 
 	_valueLabel.frame = CGRectMake(CGRectGetMaxX(area) - valueWidth, top, valueWidth, lineHeight);
 	_titleLabel.frame = CGRectMake(CGRectGetMinX(area), top, CGRectGetWidth(area) - valueWidth - 8, lineHeight);
-
-	CGFloat sliderHeight = 31;
-	CGFloat sliderTop = top + lineHeight + 4;
-	_slider.frame = CGRectMake(CGRectGetMinX(area), sliderTop, CGRectGetWidth(area), sliderHeight);
+	_slider.frame = CGRectMake(CGRectGetMinX(area), top + lineHeight, CGRectGetWidth(area), sliderHeight);
 }
 
 @end
