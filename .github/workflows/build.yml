@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      debug:
+        description: Debug build (writes /var/mobile/Library/Caches/ntfy-debug.log)
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -11,7 +16,7 @@ jobs:
     env:
       THEOS: ${{ github.workspace }}/theos
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: ntfy
 
@@ -27,7 +32,11 @@ jobs:
         working-directory: ntfy
         run: |
           export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          if [ "${{ inputs.debug }}" = "true" ]; then
+            make package DEBUG=1 THEOS_PACKAGE_SCHEME=rootless
+          else
+            make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          fi
 
       - name: Verify architectures
         working-directory: ntfy
@@ -35,7 +44,7 @@ jobs:
           lipo -info .theos/_/var/jb/Library/MobileSubstrate/DynamicLibraries/ntfy.dylib
           lipo -info .theos/_/var/jb/Library/PreferenceBundles/ntfyPrefs.bundle/ntfyPrefs
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ntfy-rootless
           path: ntfy/packages/*.deb

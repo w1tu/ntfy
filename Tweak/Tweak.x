@@ -287,7 +287,7 @@ static void NTFConfigureBadge(UIView *badge, id icon) {
 #if DEBUG
 	NSMutableArray *subviews = [NSMutableArray array];
 	for (UIView *view in badge.subviews) [subviews addObject:NSStringFromClass([view class])];
-	NTFLog(@"configure %@ badge=%@ superview=%@ iconView=%d subviews=%@", NTFIdentifier(icon), [icon badgeNumberOrString],
+	NTFLog(@"configure %@ badged=%d superview=%@ iconView=%d subviews=%@", NTFIdentifier(icon), NTFIconHasBadge(icon),
 	      NSStringFromClass([badge.superview class]), NTFIconViewForBadge(badge) != nil, subviews);
 #endif
 	[ntfBadgeViews addObject:badge];
