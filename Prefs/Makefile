@@ -1,10 +1,10 @@
 TARGET := iphone:clang:16.5:15.0
-ARCHS = arm64 arm64e
+ARCHS ?= arm64 arm64e
 
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = ntfyPrefs
-ntfyPrefs_FILES = NTFRootListController.m NTFColorCell.m
+ntfyPrefs_FILES = NTFRootListController.m NTFColorCell.m NTFSliderCell.m NTFPreviewCell.m ../Tweak/NTFDotView.m ../Tweak/NTFColorExtractor.m
 ntfyPrefs_CFLAGS = -fobjc-arc -Wall -Wno-unused-function
 ntfyPrefs_FRAMEWORKS = UIKit QuartzCore
 ntfyPrefs_PRIVATE_FRAMEWORKS = Preferences

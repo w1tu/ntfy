@@ -69,6 +69,20 @@ static inline NSString *NTFHexFromColor(UIColor *color) {
 	return [NSString stringWithFormat:@"#%02X%02X%02X", ri, gi, bi];
 }
 
+// dot just off the top-right corner, sizes are for a 60pt icon
+static inline CGRect NTFDotFrame(CGRect imageFrame, CGFloat size, CGFloat offsetX, CGFloat offsetY, CGFloat screenScale) {
+	CGFloat unit = CGRectGetWidth(imageFrame) / 60.0;
+	if (unit <= 0) unit = 1;
+	CGFloat scale = screenScale > 0 ? screenScale : 2;
+	CGFloat diameter = MAX(round(size * unit * scale) / scale, 2.0 / scale);
+	CGFloat outset = size * 0.2;
+	CGFloat centerX = CGRectGetMaxX(imageFrame) + (outset + offsetX) * unit;
+	CGFloat centerY = CGRectGetMinY(imageFrame) - (outset + offsetY) * unit;
+	return CGRectMake(round((centerX - diameter / 2.0) * scale) / scale,
+	                  round((centerY - diameter / 2.0) * scale) / scale,
+	                  diameter, diameter);
+}
+
 static inline id NTFCopyPreference(NSString *key) {
 	CFPropertyListRef value = CFPreferencesCopyAppValue((__bridge CFStringRef)key, (__bridge CFStringRef)NTF_DOMAIN);
 	return value ? (__bridge_transfer id)value : NTFDefaultPreferences()[key];

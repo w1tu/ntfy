@@ -37,8 +37,7 @@ static const void *kNTFIconKey = &kNTFIconKey;
 static const void *kNTFNeedsColorKey = &kNTFNeedsColorKey;
 
 static NSHashTable<UIView *> *ntfBadgeViews;
-static NSMapTable<UIImage *, UIColor *> *ntfImageColors;
-static NSMutableDictionary<NSString *, id> *ntfLeafColors;
+static NSMutableDictionary<NSString *, NSArray *> *ntfLeafColors;
 static NSMutableDictionary<NSString *, id> *ntfBundleColors;
 static Class ntfIconViewClass;
 static Class ntfBadgeViewClass;
@@ -97,12 +96,29 @@ static NSString *NTFIdentifier(SBIcon *icon) {
 	return [icon respondsToSelector:@selector(uniqueIdentifier)] ? [icon uniqueIdentifier] : nil;
 }
 
+// fallback: grab the rendered layer, skip badge views
+static UIImage *NTFImageFromLayerTree(UIView *view, NSUInteger depth) {
+	if ([view isKindOfClass:ntfBadgeViewClass]) return nil;
+	id contents = view.layer.contents;
+	if (contents && CFGetTypeID((__bridge CFTypeRef)contents) == CGImageGetTypeID()) {
+		return [UIImage imageWithCGImage:(__bridge CGImageRef)contents];
+	}
+	if (depth == 0) return nil;
+	for (UIView *subview in view.subviews) {
+		UIImage *image = NTFImageFromLayerTree(subview, depth - 1);
+		if (image) return image;
+	}
+	return nil;
+}
+
 static UIImage *NTFDisplayedIconImage(SBIconView *iconView) {
 	if (![iconView respondsToSelector:@selector(_iconImageView)]) return nil;
 	SBIconImageView *imageView = [iconView _iconImageView];
-	if ([imageView respondsToSelector:@selector(displayedImage)]) return [imageView displayedImage];
-	if ([imageView respondsToSelector:@selector(contentsImage)]) return [imageView contentsImage];
-	return nil;
+	UIImage *image = nil;
+	if ([imageView respondsToSelector:@selector(displayedImage)]) image = [imageView displayedImage];
+	if (!image.CGImage && [imageView respondsToSelector:@selector(contentsImage)]) image = [imageView contentsImage];
+	if (!image.CGImage) image = NTFImageFromLayerTree(imageView, 3);
+	return image.CGImage ? image : nil;
 }
 
 static CGRect NTFIconImageFrame(SBIconView *iconView) {
@@ -129,15 +145,6 @@ static UIColor *NTFColorFromCacheValue(id value) {
 	return [value isKindOfClass:[UIColor class]] ? value : nil;
 }
 
-static UIColor *NTFColorForImage(UIImage *image) {
-	if (!image) return nil;
-	id cached = [ntfImageColors objectForKey:image];
-	if (cached) return NTFColorFromCacheValue(cached);
-	UIColor *color = NTFRepresentativeColor(image);
-	[ntfImageColors setObject:NTFCacheValue(color) forKey:image];
-	return color;
-}
-
 static UIColor *NTFBundleIconColor(SBIcon *icon) {
 	if (![icon respondsToSelector:@selector(applicationBundleID)]) return nil;
 	NSString *bundleID = [(SBLeafIcon *)icon applicationBundleID];
@@ -155,17 +162,27 @@ static UIColor *NTFBundleIconColor(SBIcon *icon) {
 	return color;
 }
 
+// cached per icon + CGImage, recomputed when the icon image changes
 static UIColor *NTFLeafColor(SBIcon *icon, SBIconView *iconView) {
 	NSString *identifier = NTFIdentifier(icon);
+	NSArray *entry = identifier ? ntfLeafColors[identifier] : nil;
 	UIImage *image = iconView ? NTFDisplayedIconImage(iconView) : nil;
-	if (image) {
-		UIColor *color = NTFColorForImage(image);
-		if (identifier) ntfLeafColors[identifier] = NTFCacheValue(color);
+
+	if (image && identifier) {
+		if (entry && (__bridge CGImageRef)entry[0] == image.CGImage) return NTFColorFromCacheValue(entry[1]);
+		UIColor *color = NTFRepresentativeColor(image);
+		ntfLeafColors[identifier] = @[(__bridge id)image.CGImage, NTFCacheValue(color)];
+#if DEBUG
+		NTFLog(@"colour %@ from icon %.0fx%.0f -> %@", identifier, image.size.width, image.size.height, color);
+#endif
 		return color;
 	}
-	id cached = identifier ? ntfLeafColors[identifier] : nil;
-	if (cached) return NTFColorFromCacheValue(cached);
-	return NTFBundleIconColor(icon);
+	if (entry) return NTFColorFromCacheValue(entry[1]);
+	UIColor *color = NTFBundleIconColor(icon);
+#if DEBUG
+	NTFLog(@"colour %@ from bundle icon (view=%d) -> %@", identifier, iconView != nil, color);
+#endif
+	return color;
 }
 
 static UIColor *NTFFolderColor(SBFolderIcon *folderIcon) {
@@ -212,23 +229,16 @@ static void NTFPositionDot(UIView *badge, NTFDotView *dot, SBIconView *iconView)
 	CGRect frame;
 
 	if (iconView && badge.superview) {
-		CGRect imageFrame = NTFIconImageFrame(iconView);
-		CGFloat unit = CGRectGetWidth(imageFrame) / 60.0;
-		if (unit <= 0) unit = 1;
-		CGFloat diameter = MAX(round(prefs.size * unit * scale) / scale, 2.0 / scale);
-		CGFloat centerX = CGRectGetMaxX(imageFrame) + (prefs.offsetX - 2.0) * unit;
-		CGFloat centerY = CGRectGetMinY(imageFrame) + (2.0 - prefs.offsetY) * unit;
-		CGPoint origin = CGPointMake(round((centerX - diameter / 2.0) * scale) / scale,
-		                             round((centerY - diameter / 2.0) * scale) / scale);
+		CGRect target = NTFDotFrame(NTFIconImageFrame(iconView), prefs.size, prefs.offsetX, prefs.offsetY, scale);
 
 		// ignore the badge transform so the dot follows the zoom animation
-		CGPoint inSuperview = [iconView convertPoint:origin toView:badge.superview];
+		CGPoint inSuperview = [iconView convertPoint:target.origin toView:badge.superview];
 		CGRect bounds = badge.bounds;
 		CGPoint anchor = badge.layer.anchorPoint;
 		CGPoint center = badge.center;
 		frame = CGRectMake(inSuperview.x - (center.x - bounds.size.width * anchor.x) + bounds.origin.x,
 		                   inSuperview.y - (center.y - bounds.size.height * anchor.y) + bounds.origin.y,
-		                   diameter, diameter);
+		                   target.size.width, target.size.height);
 	} else {
 		CGFloat diameter = round(prefs.size * scale) / scale;
 		frame = CGRectMake(CGRectGetMidX(badge.bounds) - diameter / 2.0,
@@ -284,12 +294,6 @@ static void NTFApplyBadge(UIView *badge, BOOL refreshAppearance) {
 }
 
 static void NTFConfigureBadge(UIView *badge, id icon) {
-#if DEBUG
-	NSMutableArray *subviews = [NSMutableArray array];
-	for (UIView *view in badge.subviews) [subviews addObject:NSStringFromClass([view class])];
-	NTFLog(@"configure %@ badged=%d superview=%@ iconView=%d subviews=%@", NTFIdentifier(icon), NTFIconHasBadge(icon),
-	      NSStringFromClass([badge.superview class]), NTFIconViewForBadge(badge) != nil, subviews);
-#endif
 	[ntfBadgeViews addObject:badge];
 	NTFSetIconForBadge(badge, icon);
 	NTFApplyBadge(badge, YES);
@@ -354,9 +358,6 @@ static void NTFPreferencesChanged(CFNotificationCenterRef center, void *observer
 		if (!ntfIconViewClass || !ntfBadgeViewClass) return;
 
 		ntfBadgeViews = [NSHashTable weakObjectsHashTable];
-		ntfImageColors = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPointerPersonality
-		                                           valueOptions:NSPointerFunctionsStrongMemory
-		                                               capacity:64];
 		ntfLeafColors = [NSMutableDictionary dictionary];
 		ntfBundleColors = [NSMutableDictionary dictionary];
 		[NTFPreferences shared];

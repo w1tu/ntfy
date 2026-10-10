@@ -1,6 +1,8 @@
 #import "NTFRootListController.h"
 #import "../Shared/NTFShared.h"
 
+extern NSString *const NTFPreviewNeedsUpdateNotification;
+
 @implementation NTFRootListController
 
 - (NSArray *)specifiers {
@@ -27,8 +29,14 @@
 		value = @(round([value doubleValue] / step) * step);
 	}
 	CFPreferencesSetAppValue((__bridge CFStringRef)key, (__bridge CFPropertyListRef)value, (__bridge CFStringRef)NTF_DOMAIN);
+	[self preferencesDidChange];
+	if ([key isEqualToString:NTF_KEY_STYLE]) [self reloadSpecifierID:NTF_KEY_BORDER animated:NO];
+}
+
+- (void)preferencesDidChange {
 	CFPreferencesAppSynchronize((__bridge CFStringRef)NTF_DOMAIN);
 	CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR(NTF_NOTIFICATION), NULL, NULL, YES);
+	[[NSNotificationCenter defaultCenter] postNotificationName:NTFPreviewNeedsUpdateNotification object:nil];
 }
 
 - (void)restoreDefaults:(PSSpecifier *)specifier {
@@ -40,8 +48,7 @@
 		for (NSString *key in NTFDefaultPreferences()) {
 			CFPreferencesSetAppValue((__bridge CFStringRef)key, NULL, (__bridge CFStringRef)NTF_DOMAIN);
 		}
-		CFPreferencesAppSynchronize((__bridge CFStringRef)NTF_DOMAIN);
-		CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR(NTF_NOTIFICATION), NULL, NULL, YES);
+		[self preferencesDidChange];
 		[self reloadSpecifiers];
 	}]];
 	[self presentViewController:alert animated:YES completion:nil];

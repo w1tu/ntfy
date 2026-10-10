@@ -134,7 +134,12 @@
 - (void)refreshCellContentsWithSpecifier:(PSSpecifier *)specifier {
 	[super refreshCellContentsWithSpecifier:specifier];
 	self.textLabel.text = nil;
+	self.detailTextLabel.text = nil;
 	[self refreshSelection];
+}
+
+- (void)setValue:(id)value {
+	// don't show the hex value
 }
 
 - (void)layoutSubviews {
