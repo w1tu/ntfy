@@ -108,8 +108,11 @@ static SBIcon *NTFResolvedIconForBadge(UIView *badge, SBIconView *iconView) {
 	return icon ?: NTFIconForBadge(badge);
 }
 
+// every SBIcon has -folder, so don't check for that
 static BOOL NTFIconIsFolder(SBIcon *icon) {
-	return [icon respondsToSelector:@selector(folder)];
+	if ([icon respondsToSelector:@selector(isFolderIcon)]) return [icon isFolderIcon];
+	Class folderIconClass = objc_getClass("SBFolderIcon");
+	return folderIconClass && [icon isKindOfClass:folderIconClass];
 }
 
 static BOOL NTFIconHasBadge(SBIcon *icon) {
@@ -313,7 +316,7 @@ static void NTFApplyBadge(UIView *badge, BOOL refreshAppearance) {
 	if (refreshAppearance || (needsColor && iconView)) {
 		SBIcon *icon = NTFResolvedIconForBadge(badge, iconView);
 #if DEBUG
-		if (prefs.adaptive && !icon) {
+		if (prefs.adaptive && !icon && badge.superview) {
 			NSMutableArray *chain = [NSMutableArray array];
 			for (UIView *view = badge.superview; view && chain.count < 8; view = view.superview) [chain addObject:NSStringFromClass([view class])];
 			NTFLog(@"no icon for badge: provider=%@ chain=%@", NSStringFromClass([NTFProviderForBadge(badge) class]), [chain componentsJoinedByString:@" > "]);

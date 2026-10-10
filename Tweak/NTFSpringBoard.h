@@ -5,6 +5,7 @@
 @interface SBIcon : NSObject
 - (NSString *)uniqueIdentifier;
 - (id)badgeNumberOrString;
+- (BOOL)isFolderIcon;
 @end
 
 @interface SBLeafIcon : SBIcon
