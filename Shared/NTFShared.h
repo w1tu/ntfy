@@ -30,8 +30,8 @@ static inline NSDictionary<NSString *, id> *NTFDefaultPreferences(void) {
 		NTF_KEY_SIZE: @12,
 		NTF_KEY_BORDER: @2,
 		NTF_KEY_OPACITY: @100,
-		NTF_KEY_OFFSET_X: @2,
-		NTF_KEY_OFFSET_Y: @2,
+		NTF_KEY_OFFSET_X: @0,
+		NTF_KEY_OFFSET_Y: @0,
 	};
 }
 
@@ -76,7 +76,7 @@ static inline CGRect NTFDotFrame(CGRect imageFrame, CGFloat size, CGFloat offset
 	if (unit <= 0) unit = 1;
 	CGFloat scale = screenScale > 0 ? screenScale : 2;
 	CGFloat diameter = MAX(round(size * unit * scale) / scale, 2.0 / scale);
-	CGFloat outset = size * 0.2;
+	CGFloat outset = size * 0.2 + 2; // +2 so offset 0 is the default spot
 	CGFloat centerX = CGRectGetMaxX(imageFrame) + (outset + offsetX) * unit;
 	CGFloat centerY = CGRectGetMinY(imageFrame) - (outset + offsetY) * unit;
 	return CGRectMake(round((centerX - diameter / 2.0) * scale) / scale,

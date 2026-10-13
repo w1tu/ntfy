@@ -295,7 +295,8 @@ static void NTFRestoreBadge(UIView *badge) {
 
 static void NTFApplyBadge(UIView *badge, BOOL refreshAppearance) {
 	NTFPreferences *prefs = [NTFPreferences shared];
-	if (!prefs.enabled) {
+	// only home screen icons, leave badges anywhere else (notification center etc) alone
+	if (!prefs.enabled || (badge.superview && !NTFIconViewForBadge(badge))) {
 		NTFRestoreBadge(badge);
 		return;
 	}
